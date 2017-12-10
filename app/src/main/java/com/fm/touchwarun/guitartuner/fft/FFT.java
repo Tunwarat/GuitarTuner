@@ -8,6 +8,7 @@ public class FFT {
 
     int n, m;
 
+
     // Lookup tables. Only need to recompute when size of FFT changes.
     double[] cos;
     double[] sin;

@@ -38,11 +38,15 @@ public class MainActivity extends AppCompatActivity {
     int blockSize = 256;
     int sampleRate = 8000;
     public double frequency = 0.0;
+    int k = 0;
 
     FFT fft = new FFT(blockSize);
+//    FFT fft = new FFT(8);
 
     RecordAudio recordAudio;
     boolean started = false;
+
+    TextView tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,31 +55,31 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        tv = (TextView) findViewById(R.id.sample_text);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Start Recording", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Start/Stop Recording", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 startExecute();
+                tv.setText("" + started);
             }
         });
 
         // Example of a call to a native method
-        TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode == PERMISSION_REQUEST_RECORDAUDIO) {
+        if (requestCode == PERMISSION_REQUEST_RECORDAUDIO) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Snackbar.make(findViewById(R.id.main_layout), "Recording Audio permission was granted, start recording",
                         Snackbar.LENGTH_SHORT)
                         .show();
                 startRecording();
-            } else
-            {
+            } else {
                 Snackbar.make(findViewById(R.id.main_layout), "Recording Audio permission request was denied.",
                         Snackbar.LENGTH_SHORT)
                         .show();
@@ -158,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
             double[] im = new double[blockSize];
             double[] magnitude = new double[blockSize];
             double[] toTransform = new double[blockSize];
+//            double[] toTransform = new double[8];
             double[] zeros = new double[blockSize];
 
             try {
@@ -167,25 +172,35 @@ public class MainActivity extends AppCompatActivity {
             }
 
             while (started) {
+                Log.d("k", "" + k);
                 int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
+
+//                Log.d("buffer", "" + buffer[0]);
+                Log.d("BufferReadResult", "" + bufferReadResult);
+
+//                Log.d("BufferReadResult_for", "" + bufferReadResult);
                 for (int i = 0; i < blockSize && i < bufferReadResult; i++) {
                     toTransform[i] = (double) buffer[i] / 32768.0;
                     zeros[i] = 0;
                 }
+//                Log.d("started", "started: " + started);
 
 // ----------------------for FTT --------------------------------
-            fft.fft(toTransform, zeros);
+//                fft.fft(toTransform, zeros);
+//                double[] R = {7, 8, 9, 20, 21, 90, 21, 90};
+//                double[] I = {0, 0, 0, 0, 0,0, 0, 0};
+//
+//                fft.fft(R, I);
+                fft.fft(toTransform, zeros);
 // -------------------------------------------------------------------
 
-                Log.d("Buffer: ", "" + bufferReadResult);
+//                Log.d("Buffer: ", "" + bufferReadResult);
 
                 for (int i = 0; i < blockSize; i++) {
                     try {
-                        // real is stored in first part of array
-                        re[i] = toTransform[i * 2];
-                        // imaginary is stored in the sequential part
-                        im[i] = toTransform[(i * 2) + 1];
-                        // magnitude is calculated by the square root of (imaginary^2 + real^2)
+                        re[i] = toTransform[i];
+                        im[i] = zeros[i];
+//                        magnitude[i] = Math.sqrt((R[i] * R[i]) + (I[i] * I[i]));
                         magnitude[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i]));
                     } catch (ArrayIndexOutOfBoundsException e) {
 //                        Log.e("ArrayIndexOutOfBounds", "NULL");
@@ -198,8 +213,16 @@ public class MainActivity extends AppCompatActivity {
                     if (peak < magnitude[i])
                         peak = magnitude[i];
                 }
+
                 // calculated the frequency
                 frequency = (sampleRate * peak) / blockSize;
+
+                Log.e("frequency = ", "" + frequency);
+//                Log.e("peak = ", "" + peak);
+
+
+                Log.d("-------------------", "----------------------------");
+                k++;
 
                 publishProgress(frequency);
                 try {
@@ -207,6 +230,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IllegalStateException e) {
 //                    Log.e("Stop failed", e.toString());
                 }
+
+
             }
 
             return null;
@@ -215,9 +240,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(Double... frequencies) {
             String info = Double.toString(frequencies[0]);
-            Log.d("frequency = ", info);
+//            Log.d("frequency = ", info);
         }
-
     }
 
     /**
