@@ -172,11 +172,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             while (started) {
-                Log.d("k", "" + k);
+//                Log.d("k", "" + k);
                 int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
-
+//                for (int i = 0 ; i < bufferReadResult; i++){
+//                    Log.d("buffer", i+ ""+buffer[i]);
+//                }
 //                Log.d("buffer", "" + buffer[0]);
-                Log.d("BufferReadResult", "" + bufferReadResult);
+//                Log.d("BufferReadResult", "" + bufferReadResult);
 
 //                Log.d("BufferReadResult_for", "" + bufferReadResult);
                 for (int i = 0; i < blockSize && i < bufferReadResult; i++) {
@@ -217,18 +219,18 @@ public class MainActivity extends AppCompatActivity {
                 // calculated the frequency
                 frequency = (sampleRate * peak) / blockSize;
 
-                Log.e("frequency = ", "" + frequency);
+//                Log.e("frequency = ", "" + frequency);
 //                Log.e("peak = ", "" + peak);
 
 
-                Log.d("-------------------", "----------------------------");
+//                Log.d("-------------------", "----------------------------");
                 k++;
 
                 publishProgress(frequency);
                 try {
                     audioRecord.stop();
                 } catch (IllegalStateException e) {
-//                    Log.e("Stop failed", e.toString());
+                    Log.e("Stop failed", e.toString());
                 }
 
 
