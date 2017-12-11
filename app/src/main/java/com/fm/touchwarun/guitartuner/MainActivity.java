@@ -36,14 +36,13 @@ public class MainActivity extends AppCompatActivity {
     int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 
     int blockSize = 256;
-    int sampleRate = 8000;
+    int sampleRate = 44100;
     public double frequency = 0.0;
     int k = 0;
 
-    FFT fft = new FFT(blockSize);
+        FFT fft = new FFT(blockSize); // -------------------------
 //    FFT fft = new FFT(8);
 
-    RecordAudio recordAudio;
     boolean started = false;
 
     TextView tv;
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Start/Stop Recording", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                startExecute();
+                startRecording();
                 tv.setText("" + started);
             }
         });
@@ -87,24 +86,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startExecute() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                == PackageManager.PERMISSION_GRANTED) {
-            startRecording();
-        } else {
-            requestRecordAudioPermission();
-        }
-    }
 
     private void startRecording() {
         if (started) {
             started = false;
-            recordAudio.cancel(true);
+            return;
         } else {
             started = true;
-            recordAudio = new RecordAudio();
-            recordAudio.execute();
         }
+        getRecord();
     }
 
 
@@ -150,30 +140,30 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class RecordAudio extends AsyncTask<Void, Double, Void> {
-        @Override
-        protected Void doInBackground(Void... voids) {
-            int bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioEncoding);
-            AudioRecord audioRecord = new AudioRecord(audioSource, sampleRate, channelConfig, audioEncoding, bufferSize);
+    void getRecord() {
+        int bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioEncoding);
+        AudioRecord audioRecord = new AudioRecord(audioSource, sampleRate, channelConfig, audioEncoding, bufferSize);
 
-            short[] buffer = new short[blockSize];
+        short[] buffer = new short[blockSize];
+//
+//        double[] re = new double[blockSize];
+//        double[] im = new double[blockSize];
+        double[] magnitude = new double[blockSize];
+        double[] re = new double[blockSize];
+//            double[] re = new double[8];
+        double[] im = new double[blockSize];
+        double[] singleSpectrum = new double[blockSize / 2];
 
-            double[] re = new double[blockSize];
-            double[] im = new double[blockSize];
-            double[] magnitude = new double[blockSize];
-            double[] toTransform = new double[blockSize];
-//            double[] toTransform = new double[8];
-            double[] zeros = new double[blockSize];
-
-            try {
-                audioRecord.startRecording();  //Start
-            } catch (Throwable t) {
-                Log.e("AudioRecord", "Recording Failed");
-            }
-
-            while (started) {
+        try {
+            audioRecord.startRecording();  //Start
+        } catch (Throwable t) {
+            Log.e("AudioRecord", "Recording Failed");
+        }
+        long startTime = System.currentTimeMillis(); //fetch starting time
+        while ((false || (System.currentTimeMillis() - startTime) < 5000) && started) {
+//        while (started) {
 //                Log.d("k", "" + k);
-                int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
+            int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
 //                for (int i = 0 ; i < bufferReadResult; i++){
 //                    Log.d("buffer", i+ ""+buffer[i]);
 //                }
@@ -181,68 +171,59 @@ public class MainActivity extends AppCompatActivity {
 //                Log.d("BufferReadResult", "" + bufferReadResult);
 
 //                Log.d("BufferReadResult_for", "" + bufferReadResult);
-                for (int i = 0; i < blockSize && i < bufferReadResult; i++) {
-                    toTransform[i] = (double) buffer[i] / 32768.0;
-                    zeros[i] = 0;
-                }
+            for(int i = 0 ; i < bufferReadResult ; i++ ) {
+                Log.d("buffer", ""+buffer[i]);
+                Log.d("i", ""+i);
+            }
+            for (int i = 0; i < blockSize && i < bufferReadResult; i++) {
+                re[i] = (double) buffer[i] / 32768.0;
+                im[i] = 0;
+            }
 //                Log.d("started", "started: " + started);
 
 // ----------------------for FTT --------------------------------
-//                fft.fft(toTransform, zeros);
-//                double[] R = {7, 8, 9, 20, 21, 90, 21, 90};
-//                double[] I = {0, 0, 0, 0, 0,0, 0, 0};
-//
-//                fft.fft(R, I);
-                fft.fft(toTransform, zeros);
+//                fft.fft(re, im);
+//            double[] R = {7, 8, 9, 20, 21, 90, 21, 90}; //-------------------------
+//            double[] I = {0, 0, 0, 0, 0, 0, 0, 0}; //-------------------------
+//            fft.fft(R, I); //-------------------------
+
+            fft.fft(re, im);
 // -------------------------------------------------------------------
 
 //                Log.d("Buffer: ", "" + bufferReadResult);
 
-                for (int i = 0; i < blockSize; i++) {
-                    try {
-                        re[i] = toTransform[i];
-                        im[i] = zeros[i];
-//                        magnitude[i] = Math.sqrt((R[i] * R[i]) + (I[i] * I[i]));
-                        magnitude[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i]));
-                    } catch (ArrayIndexOutOfBoundsException e) {
-//                        Log.e("ArrayIndexOutOfBounds", "NULL");
-                    }
-                }
-
-                double peak = -1.0;
-                // Get the largest magnitude peak
-                for (int i = 0; i < blockSize; i++) {
-                    if (peak < magnitude[i])
-                        peak = magnitude[i];
-                }
-
-                // calculated the frequency
-                frequency = (sampleRate * peak) / blockSize;
-
-//                Log.e("frequency = ", "" + frequency);
-//                Log.e("peak = ", "" + peak);
-
-
-//                Log.d("-------------------", "----------------------------");
-                k++;
-
-                publishProgress(frequency);
+            for (int i = 0; i < blockSize / 2; i++) {
                 try {
-                    audioRecord.stop();
-                } catch (IllegalStateException e) {
-                    Log.e("Stop failed", e.toString());
+                    if (i != 0 || i == blockSize/2-1    ) {
+                        singleSpectrum[i] = 2*(Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / blockSize);
+                    } else
+                    {
+                        singleSpectrum[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / blockSize;
+                    }
+                } catch (ArrayIndexOutOfBoundsException e) {
+//                        Log.e("ArrayIndexOutOfBounds", "NULL");
                 }
+            }
 
+            double peak = -1.0;
+            int index = -1;
+            // Get the largest magnitude peak
+            for (int i = 0; i < blockSize/2; i++) {
+                Log.d("i", "" + i);
+                if (peak < singleSpectrum[i]){
+                    peak = singleSpectrum[i];
+                    index = i;
+                }
 
             }
 
-            return null;
-        }
+            // calculated the frequency
+//            frequency = (sampleRate * peak) / blockSize;
 
-        @Override
-        protected void onProgressUpdate(Double... frequencies) {
-            String info = Double.toString(frequencies[0]);
-//            Log.d("frequency = ", info);
+            frequency = index/blockSize;
+            Log.d("blocksize", "" + blockSize);
+            Log.d("freq", "" + frequency);
+//            Log.d("peak", "" + peak);
         }
     }
 
