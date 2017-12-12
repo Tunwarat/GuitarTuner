@@ -23,10 +23,11 @@
             android:textAlignment="center" />
 
         <TextView
+            android:id="@+id/frequency"
             android:layout_width="match_parent"
             android:layout_height="0px"
             android:layout_weight="1"
-            android:text="Buffer"
+            android:text="Frequency"
             android:gravity="center|top"
             android:textAlignment="center" />
     </LinearLayout>

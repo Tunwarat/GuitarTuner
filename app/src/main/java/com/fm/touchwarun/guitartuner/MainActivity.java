@@ -36,16 +36,15 @@ public class MainActivity extends AppCompatActivity {
     int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 
     int blockSize = 256;
-    int sampleRate = 44100;
+    int sampleRate = 8000;
     public double frequency = 0.0;
-    int k = 0;
 
-        FFT fft = new FFT(blockSize); // -------------------------
-//    FFT fft = new FFT(8);
+    FFT fft = new FFT(blockSize); // -------------------------
 
     boolean started = false;
 
     TextView tv;
+    TextView tvFrequency;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         tv = (TextView) findViewById(R.id.sample_text);
+        tvFrequency = (TextView) findViewById(R.id.frequency);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "Start/Stop Recording", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 startRecording();
-                tv.setText("" + started);
             }
         });
 
@@ -88,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void startRecording() {
+        tv.setText("" + started);
         if (started) {
             started = false;
             return;
@@ -143,89 +143,72 @@ public class MainActivity extends AppCompatActivity {
     void getRecord() {
         int bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioEncoding);
         AudioRecord audioRecord = new AudioRecord(audioSource, sampleRate, channelConfig, audioEncoding, bufferSize);
-
+        Log.d("bufferSize", bufferSize + "");
         short[] buffer = new short[blockSize];
-//
-//        double[] re = new double[blockSize];
-//        double[] im = new double[blockSize];
+
         double[] magnitude = new double[blockSize];
         double[] re = new double[blockSize];
-//            double[] re = new double[8];
         double[] im = new double[blockSize];
         double[] singleSpectrum = new double[blockSize / 2];
 
         try {
             audioRecord.startRecording();  //Start
         } catch (Throwable t) {
-            Log.e("AudioRecord", "Recording Failed");
+//            Log.e("AudioRecord", "Recording Failed");
         }
         long startTime = System.currentTimeMillis(); //fetch starting time
-        while ((false || (System.currentTimeMillis() - startTime) < 5000) && started) {
-//        while (started) {
-//                Log.d("k", "" + k);
-            int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
-//                for (int i = 0 ; i < bufferReadResult; i++){
-//                    Log.d("buffer", i+ ""+buffer[i]);
-//                }
-//                Log.d("buffer", "" + buffer[0]);
-//                Log.d("BufferReadResult", "" + bufferReadResult);
 
-//                Log.d("BufferReadResult_for", "" + bufferReadResult);
-            for(int i = 0 ; i < bufferReadResult ; i++ ) {
-                Log.d("buffer", ""+buffer[i]);
-                Log.d("i", ""+i);
-            }
+        double avgFrequency = 0;
+        int n = 0;
+
+        while ((false || (System.currentTimeMillis() - startTime) < 5000) && started) {
+
+
+            int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
             for (int i = 0; i < blockSize && i < bufferReadResult; i++) {
-                re[i] = (double) buffer[i] / 32768.0;
+                re[i] = (double) buffer[i] / 32767.0;
                 im[i] = 0;
             }
-//                Log.d("started", "started: " + started);
 
 // ----------------------for FTT --------------------------------
-//                fft.fft(re, im);
-//            double[] R = {7, 8, 9, 20, 21, 90, 21, 90}; //-------------------------
-//            double[] I = {0, 0, 0, 0, 0, 0, 0, 0}; //-------------------------
-//            fft.fft(R, I); //-------------------------
 
             fft.fft(re, im);
 // -------------------------------------------------------------------
 
-//                Log.d("Buffer: ", "" + bufferReadResult);
 
             for (int i = 0; i < blockSize / 2; i++) {
-                try {
-                    if (i != 0 || i == blockSize/2-1    ) {
-                        singleSpectrum[i] = 2*(Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / blockSize);
-                    } else
-                    {
-                        singleSpectrum[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / blockSize;
-                    }
-                } catch (ArrayIndexOutOfBoundsException e) {
-//                        Log.e("ArrayIndexOutOfBounds", "NULL");
-                }
+                singleSpectrum[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / blockSize;
             }
 
             double peak = -1.0;
             int index = -1;
             // Get the largest magnitude peak
-            for (int i = 0; i < blockSize/2; i++) {
-                Log.d("i", "" + i);
-                if (peak < singleSpectrum[i]){
+            for (int i = 0; i < blockSize / 2; i++) {
+                if (peak < singleSpectrum[i]) {
                     peak = singleSpectrum[i];
                     index = i;
                 }
-
             }
 
             // calculated the frequency
-//            frequency = (sampleRate * peak) / blockSize;
 
-            frequency = index/blockSize;
-            Log.d("blocksize", "" + blockSize);
+            frequency =  sampleRate/blockSize*index;
             Log.d("freq", "" + frequency);
-//            Log.d("peak", "" + peak);
+            n++;
+            avgFrequency += frequency;
         }
+        avgFrequency /= n;
+        tv.setText("avg frequency: " + avgFrequency);
+
+        try {
+            audioRecord.stop();  //Start
+        } catch (Throwable t) {
+//            Log.e("AudioRecord", "Recording Failed");
+        }
+        audioRecord.release();
     }
+
+
 
     /**
      * A native method that is implemented by the 'native-lib' native library,
