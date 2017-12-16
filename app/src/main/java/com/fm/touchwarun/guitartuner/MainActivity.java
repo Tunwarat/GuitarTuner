@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
     int channelConfig = AudioFormat.CHANNEL_IN_MONO;
     int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 
-    int N = 512;
-    int sampleRate = 4000;
+    int N = 256;
+    int sampleRate = 8000;
     public double frequency;
 
     FFT fft = new FFT(N); // -------------------------
@@ -71,14 +71,6 @@ public class MainActivity extends AppCompatActivity {
     private void startRecording() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED) {
-
-            tv.setText("" + started);
-            if (started) {
-                started = false;
-                return;
-            } else {
-                started = true;
-            }
             getRecord();
         } else {
             requestRecordAudioPermission();
@@ -96,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         double[] im = new double[N]; //Why not using short? : for precise calculation in FFT.
         double[] singleSpectrum = new double[N / 2];
 
+
         try {
             audioRecord.startRecording();  //Start
         } catch (Throwable t) {
@@ -103,10 +96,12 @@ public class MainActivity extends AppCompatActivity {
 
         long startTime = System.currentTimeMillis(); //fetch starting time
 
-        double avgFrequency = 0;
-        int n = 0;
+        double realPeak = -1.0;
+        int realIndex =-1;
+        double realFrequency = 0;
 
-        while (((System.currentTimeMillis() - startTime) < 5000) && started) {
+//        while (((System.currentTimeMillis() - startTime) < 5000) && started) {
+        while ((System.currentTimeMillis() - startTime) < 5000) {
             int bufferReadResult = audioRecord.read(buffer, 0, N); //audiorecord.read return values of how many data has been collected into buffer
 
             for (int i = 0; i < N && i < bufferReadResult; i++) {
@@ -118,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
             fft.fft(re, im); //send real and img part to fft
 // -------------------------------------------------------------------
             for (int i = 0; i < N / 2; i++) {
-                singleSpectrum[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / N;
+                singleSpectrum[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i])) / N;//หาร N เพราะทำให้ -1<N<1
 
             } //get singleSpectrum(single side spectrum of buffer)
 
@@ -130,21 +125,21 @@ public class MainActivity extends AppCompatActivity {
                     peak = singleSpectrum[i];
                     index = i;
                 }
-            } //use loop to find maximum value in singleSpectrum and index of that value
-//            peak = 20
-//                    index = 7
-//            r= 12 14 16 1 2 3 4 20
+            }/// /use loop to find maximum value in singleSpectrum and index of that value
 
-            // calculated the frequency
+            if(realPeak < peak){
+                realPeak = peak;
+                realIndex = index;
+            }
 
-            frequency = sampleRate / N * index; //
+            frequency = sampleRate / N * index;
+
+            realFrequency = sampleRate / N * realIndex;
+
             Log.d("freq", "" + frequency);
-            n++;
-            avgFrequency += frequency;
         }
-        avgFrequency /= n;
-        tv.setText("avg frequency: " + avgFrequency);
-//        if(frequency == 440) {
+        tv.setText("frequency: " +  realFrequency);
+//        if(realFrequency == 440) {
 //            tv.setText("A4");
 //        }
 
