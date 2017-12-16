@@ -1,6 +1,7 @@
 package com.fm.touchwarun.guitartuner;
 
 import android.Manifest;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -17,8 +19,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.fm.touchwarun.guitartuner.fft.FFT;
+
+import me.omidh.liquidradiobutton.LiquidRadioButton;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,25 +48,29 @@ public class MainActivity extends AppCompatActivity {
 
     TextView tv;
     TextView tvFrequency;
+    RadioGroup rg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // starting write our own code
-        tv = (TextView) findViewById(R.id.sample_text);
-        tvFrequency = (TextView) findViewById(R.id.frequency);
+        rg = (RadioGroup) findViewById(R.id.rg);
+        LiquidRadioButton lrbE2 = (LiquidRadioButton) findViewById(R.id.E2);
+        lrbE2.setChecked(true);
 
+        // starting write our own code
+        tv = (TextView) findViewById(R.id.frequency);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() { //รอรับคลิ๊ก
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Start/Stop Recording", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
                 startRecording();
+                Snackbar.make(view, "Stop", Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
             }
         });
 
@@ -72,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED) {
             getRecord();
+
         } else {
             requestRecordAudioPermission();
         }
@@ -131,17 +141,11 @@ public class MainActivity extends AppCompatActivity {
                 realPeak = peak;
                 realIndex = index;
             }
-
-            frequency = sampleRate / N * index;
-
+//            frequency = sampleRate / N * index;
             realFrequency = sampleRate / N * realIndex;
-
+            printFrequency(realFrequency);
             Log.d("freq", "" + frequency);
         }
-        tv.setText("frequency: " +  realFrequency);
-//        if(realFrequency == 440) {
-//            tv.setText("A4");
-//        }
 
         try {
             audioRecord.stop();  //Start
@@ -149,6 +153,38 @@ public class MainActivity extends AppCompatActivity {
 //            Log.e("AudioRecord", "Recording Failed");
         }
         audioRecord.release();
+    }
+
+    public void printFrequency(double frequency){
+        int noteFreq = 248;
+        switch (rg.getCheckedRadioButtonId()) {
+            case R.id.E2:
+                noteFreq = 248;
+                break;
+            case R.id.A2:
+                noteFreq = 217;
+                break;
+            case R.id.D3:
+                noteFreq = 155;
+                break;
+            case R.id.G3:
+                noteFreq = 186;
+                break;
+            case R.id.B3:
+                noteFreq = 248;
+                break;
+            case R.id.E4:
+                noteFreq = 341;
+                break;
+        }
+
+        if (frequency > noteFreq) {
+            tv.setText("TOO HIGH");
+        } else if (frequency < noteFreq) {
+            tv.setText("TOO LOW");
+        } else {
+            tv.setText("PERFECT");
+        }
     }
 
     @Override

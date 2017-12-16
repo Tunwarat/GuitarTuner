@@ -13,22 +13,93 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/sample_text"
+        <RadioGroup
+            android:id="@+id/rg"
             android:layout_width="match_parent"
-            android:gravity="center|bottom"
-            android:layout_height="0px"
-            android:layout_weight="1"
-            android:text="Hello World!"
-            android:textAlignment="center" />
+            android:layout_height="wrap_content">
+
+            <me.omidh.liquidradiobutton.LiquidRadioButton
+                android:id="@+id/E2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:text="E2"
+                app:lrb_checkedColor="@android:color/holo_red_light"
+                app:lrb_inAnimDuration="500"
+                app:lrb_outAnimDuration="500"
+                app:lrb_outterPadding="20dp"
+                app:lrb_unCheckedColor="@android:color/holo_red_light"/>
+
+            <me.omidh.liquidradiobutton.LiquidRadioButton
+                android:id="@+id/A2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:text="A2"
+                app:lrb_checkedColor="@android:color/holo_red_light"
+                app:lrb_inAnimDuration="500"
+                app:lrb_outAnimDuration="500"
+                app:lrb_outterPadding="20dp"
+                app:lrb_unCheckedColor="@android:color/holo_red_light" />
+
+            <me.omidh.liquidradiobutton.LiquidRadioButton
+                android:id="@+id/D3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:text="D3"
+                app:lrb_checkedColor="@android:color/holo_red_light"
+                app:lrb_inAnimDuration="500"
+                app:lrb_outAnimDuration="500"
+                app:lrb_outterPadding="20dp"
+                app:lrb_unCheckedColor="@android:color/holo_red_light" />
+
+            <me.omidh.liquidradiobutton.LiquidRadioButton
+                android:id="@+id/G3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:text="G3"
+                app:lrb_checkedColor="@android:color/holo_red_light"
+                app:lrb_inAnimDuration="500"
+                app:lrb_outAnimDuration="500"
+                app:lrb_outterPadding="20dp"
+                app:lrb_unCheckedColor="@android:color/holo_red_light" />
+
+            <me.omidh.liquidradiobutton.LiquidRadioButton
+                android:id="@+id/B3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:text="B3"
+                app:lrb_checkedColor="@android:color/holo_red_light"
+                app:lrb_inAnimDuration="500"
+                app:lrb_outAnimDuration="500"
+                app:lrb_outterPadding="20dp"
+                app:lrb_unCheckedColor="@android:color/holo_red_light" />
+
+            <me.omidh.liquidradiobutton.LiquidRadioButton
+                android:id="@+id/E4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:text="E4"
+                app:lrb_checkedColor="@android:color/holo_red_light"
+                app:lrb_inAnimDuration="500"
+                app:lrb_outAnimDuration="500"
+                app:lrb_outterPadding="20dp"
+                app:lrb_unCheckedColor="@android:color/holo_red_light" />
+        </RadioGroup>
 
         <TextView
             android:id="@+id/frequency"
             android:layout_width="match_parent"
             android:layout_height="0px"
             android:layout_weight="1"
-            android:text="Frequency"
+            android:paddingTop="20dp"
+            android:textSize="16dp"
             android:gravity="center|top"
+            android:text=""
             android:textAlignment="center" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
