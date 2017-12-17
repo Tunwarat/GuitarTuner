@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.fm.touchwarun.guitartuner">
 
-    <uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>
-    <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO"></uses-permission-sdk-23>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"

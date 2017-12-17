@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.fm.touchwarun.guitartuner.MainActivity">
+    tools:context="com.fm.touchwarun.guitartuner.MainActivity"
+    tools:ignore="ExtraText">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -13,7 +14,6 @@
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.v7.widget.Toolbar
-            android:tooltipText=""
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -31,6 +31,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/ic_mic_white_24dp" />
+        app:srcCompat="@drawable/ic_mic_white_24dp" /> //ic_mic_white_24dp -> picture name in drawable folder
 
 </android.support.design.widget.CoordinatorLayout>

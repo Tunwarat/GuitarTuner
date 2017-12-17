@@ -19,7 +19,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.fm.touchwarun.guitartuner.fft.FFT;
 
@@ -33,18 +32,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final int PERMISSION_REQUEST_RECORDAUDIO = 0;
-
     int audioSource = MediaRecorder.AudioSource.MIC;
     int channelConfig = AudioFormat.CHANNEL_IN_MONO;
     int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
-
     int N = 256;
     int sampleRate = 8000;
     public double frequency;
 
     FFT fft = new FFT(N); // -------------------------
-
-    boolean started = false;//when application is launched, the recorder is not starting yet.
 
     TextView tv;
     TextView tvFrequency;
@@ -53,14 +48,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //setไม่ให้จอเอียง
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         rg = (RadioGroup) findViewById(R.id.rg);
         LiquidRadioButton lrbE2 = (LiquidRadioButton) findViewById(R.id.E2);
-        lrbE2.setChecked(true);
+        lrbE2.setChecked(true); //set E2 to be default
 
         // starting write our own code
         tv = (TextView) findViewById(R.id.frequency);
@@ -143,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             }
 //            frequency = sampleRate / N * index;
             realFrequency = sampleRate / N * realIndex;
-            printFrequency(realFrequency);
+            printResult(realFrequency);
             Log.d("freq", "" + frequency);
         }
 
@@ -155,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         audioRecord.release();
     }
 
-    public void printFrequency(double frequency){
+    public void printResult(double realFrequency){
         int noteFreq = 248;
         switch (rg.getCheckedRadioButtonId()) {
             case R.id.E2:
@@ -178,9 +173,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
-        if (frequency > noteFreq) {
+        if (realFrequency > noteFreq) {
             tv.setText("TOO HIGH");
-        } else if (frequency < noteFreq) {
+        } else if (realFrequency < noteFreq) {
             tv.setText("TOO LOW");
         } else {
             tv.setText("PERFECT");
